@@ -13,7 +13,11 @@ pipeline {
         timestamps()
     }
 
-
+    environment {
+        projectName = 'ProjectTemplate'
+        
+        VIRTUAL_ENV = "${env.WORKSPACE}/venv"
+    }
 
     stages {
 
@@ -24,12 +28,17 @@ pipeline {
         }
 
         stage('Build environment') {
-            steps {
-                echo "Building virtualenv"
-                sh 'virtualenv env -p python3.5'
-                sh '. env/bin/activate'
-                sh 'env/bin/pip install -r requirements.txt'
-            }
+            sh """
+                    echo ${SHELL}
+                    [ -d venv ] && rm -rf venv
+                    
+                    virtualenv venv
+                    #. venv/bin/activate
+                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
+                    pip install --upgrade pip
+                    pip install -r requirements.txt 
+                    make clean
+                """
         }
 
         stage('Static code metrics') {
